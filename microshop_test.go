@@ -36,7 +36,10 @@ func TestGatewayFlow(t *testing.T) {
 	defer gs.Close()
 
 	// 建一个商品
-	resp, _ := http.Post(gs.URL+"/api/products", "application/json", strings.NewReader(`{"name":"键盘","price":99.5,"stock":10}`))
+	resp, err := http.Post(gs.URL+"/api/products", "application/json", strings.NewReader(`{"name":"键盘","price":99.5,"stock":10}`))
+	if err != nil {
+		t.Fatalf("建商品请求失败: %v", err)
+	}
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
 		t.Fatalf("建商品状态码 %d", resp.StatusCode)
@@ -48,14 +51,20 @@ func TestGatewayFlow(t *testing.T) {
 	}
 
 	// 查商品
-	get, _ := http.Get(gs.URL + "/api/products/" + itoa(p.ID))
+	get, err := http.Get(gs.URL + "/api/products/" + itoa(p.ID))
+	if err != nil {
+		t.Fatalf("查商品请求失败: %v", err)
+	}
 	defer get.Body.Close()
 	if get.StatusCode != 200 {
 		t.Fatalf("查商品状态码 %d", get.StatusCode)
 	}
 
 	// 下订单
-	od, _ := http.Post(gs.URL+"/api/orders", "application/json", strings.NewReader(`{"product_id":`+itoa(p.ID)+`,"qty":2}`))
+	od, err := http.Post(gs.URL+"/api/orders", "application/json", strings.NewReader(`{"product_id":`+itoa(p.ID)+`,"qty":2}`))
+	if err != nil {
+		t.Fatalf("下单请求失败: %v", err)
+	}
 	defer od.Body.Close()
 	if od.StatusCode != 200 {
 		t.Fatalf("下单状态码 %d", od.StatusCode)
@@ -67,7 +76,10 @@ func TestGatewayFlow(t *testing.T) {
 	}
 
 	// 库存应扣到 8
-	get2, _ := http.Get(gs.URL + "/api/products/" + itoa(p.ID))
+	get2, err := http.Get(gs.URL + "/api/products/" + itoa(p.ID))
+	if err != nil {
+		t.Fatalf("复查库存请求失败: %v", err)
+	}
 	defer get2.Body.Close()
 	var p2 Product
 	json.NewDecoder(get2.Body).Decode(&p2)
